@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>yolov8_person_detect</name>
+  <version>0.0.0</version>
+  <description>YOLOv8-based person detection ROS 2 package</description>
+  <maintainer email="jhchoman0823@gmail.com">jhchoman</maintainer>
+  <license>MIT</license>
+
+  <!-- Dependencies -->
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<robot name="haechi_robot">
+    <!-- map 프레임 -->
+    <link name="map"/>
+
+    <!-- 카메라 (중심점) -->
+    <link name="camera_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.5"/> <!-- 카메라 크기 -->
+            </geometry>
+            <material name="blue">
+                <color rgba="0 0 1 1"/> <!-- 파란색으로 표시 -->
+            </material>
+        </visual>
+    </link>
+
+    <!-- map과 camera_link 연결 -->
+    <joint name="map_to_camera" type="fixed">
+        <parent link="map"/>
+        <child link="camera_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/> <!-- z=0으로 고정 -->
+    </joint>
+</robot>
