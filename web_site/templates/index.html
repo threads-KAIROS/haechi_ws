@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaeChi 문화재 보안 로보트</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 90vw;
+            height: 90vh;
+            max-width: 1920px;
+            max-height: 1080px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-size: 35px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-container {
+            width: 50%;
+            height: 100%;
+            background-color: black;
+            border: 5px solid black;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .right-container {
+            width: 50%;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background-color: #222;
+            box-sizing: border-box;
+        }
+
+        .map-image-container {
+            position: relative;
+            width: 90%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        .map-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: auto;
+        }
+
+        .dot {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: red;
+        }
+
+        #notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 255, 0, 0.8);
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">HaeChi 문화재 보안 로보트</div>
+        <div class="content">
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" alt="Live CCTV Stream">
+            </div>
+
+            <div class="right-container">
+                <div class="map-image-container" id="map-container">
+                    <img src="/static/custom_grid.png" alt="HaeChi Map" class="map-image">
+                    <div id="dot" class="dot" style="top: 50%; left: 50%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification">사람이 감지되었습니다!</div>
+
+    <style>
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%; /* 화면 중앙으로 이동 */
+            transform: translateX(-50%); /* 중앙 정렬 */
+            background-color: rgba(255, 0, 0, 0.8); /* 빨간색 배경 */
+            color: white; /* 흰색 텍스트 */
+            padding: 10px 20px; /* 상하 20px, 좌우 40px 여백 */
+            border-radius: 5px;
+            font-size: 22px; /* 글씨 크기 */
+            width: auto; /* 자동 크기 (내용에 따라) */
+            max-width: 80%; /* 최대 너비 제한 (화면의 80%) */
+            display: none;
+            z-index: 1000;
+            text-align: center; /* 텍스트 중앙 정렬 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* 그림자 추가 */
+        }
+    </style>
+    
+
+    <script>
+        const mapContainer = document.getElementById('map-container');
+    
+        // 로봇 위치 업데이트 함수
+        function updateRobotPosition() {
+            fetch('/robot_position', { cache: 'no-store' })
+                .then(response => response.json())
+                .then(position => {
+                    const dot = document.getElementById('dot');
+                    const map = document.querySelector('.map-image');
+                    const mapWidth = map.offsetWidth;
+                    const mapHeight = map.offsetHeight;
+    
+                    const x = (position.x / 3.5) * mapWidth;
+                    const y = (position.y / 3.5) * mapHeight;
+    
+                    const offsetX = 366.088; 
+                    const offsetY = 294.172;
+    
+                    const finalX = x * (-1) + offsetX;
+                    const finalY = y * (-1) + offsetY;
+    
+                    dot.style.left = `${finalY.toFixed(3)}px`;
+                    dot.style.top = `${finalX.toFixed(3)}px`;
+    
+                    console.log(`Robot Position - X: ${finalX}, Y: ${finalY}`, 'Updated at:', new Date().toLocaleTimeString());
+                })
+                .catch(err => console.error('Error fetching robot position:', err));
+        }
+    
+        // 사람이 감지되었을 때 처리
+        let capturingStarted = false; // 캡처 시작 여부를 확인하는 플래그
+    
+        function checkForHumanDetection() {
+            fetch('/human_detection', { cache: 'no-store' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.detected) {
+                        const notification = document.getElementById('notification');
+                        notification.style.display = 'block';
+                        setTimeout(() => {
+                            notification.style.display = 'none';
+                        }, 1000); // 알림 2초 표시
+    
+                        // 처음 감지되었을 때만 캡처 시작 요청
+                        if (!capturingStarted) {
+                            capturingStarted = true;
+                            fetch('/start_capture', { method: 'POST' })
+                                .then(response => response.json())
+                                .then(data => console.log(data))
+                                .catch(err => console.error('Error starting capture:', err));
+                        }
+                    } else {
+                        // 사람이 감지되지 않을 경우 캡처 중지
+                        if (capturingStarted) {
+                            capturingStarted = false;
+                            fetch('/stop_capture', { method: 'POST' })
+                                .then(response => response.json())
+                                .then(data => console.log(data))
+                                .catch(err => console.error('Error stopping capture:', err));
+                        }
+                    }
+                })
+                .catch(err => console.error('Error checking human detection:', err));
+        }
+    
+        setInterval(updateRobotPosition, 500); // 로봇 위치 업데이트 0.5초 간격
+        setInterval(checkForHumanDetection, 2000); // 사람 감지 확인 2초 간격
+    
+        updateRobotPosition();
+    </script>
+    
+</body>
+</html>
