@@ -1,2 +1,2 @@
 # haechi_ws
-"This repository contains information for the driving of our robot, haechi."
+"해치의 작동을 위한 설명서"
