@@ -19,8 +19,6 @@ setup(
     license='TODO: License declaration',
     entry_points={
         'console_scripts': [
-            'commander_node = haechi_commander.commander_node:main',
-            'goal_pose_subscriber = haechi_commander.goal_pose_subscriber:main',
             'vehicle_navigation = haechi_commander.vehicle_navigation:main',
         ],
     },
